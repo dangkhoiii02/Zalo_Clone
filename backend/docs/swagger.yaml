@@ -1,0 +1,568 @@
+basePath: /api/v1
+definitions:
+  github_com_dangkhoii_zalo-clone_internal_domain.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.User'
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.FriendRequest:
+    properties:
+      friend_id:
+        type: string
+    required:
+    - friend_id
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.Friendship:
+    properties:
+      created_at:
+        type: string
+      friend_id:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.FriendshipStatus'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.FriendshipStatus:
+    enum:
+    - pending
+    - accepted
+    - blocked
+    type: string
+    x-enum-varnames:
+    - FriendshipPending
+    - FriendshipAccepted
+    - FriendshipBlocked
+  github_com_dangkhoii_zalo-clone_internal_domain.JoinCallResponse:
+    properties:
+      room_name:
+        type: string
+      token:
+        type: string
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.StartCallRequest:
+    properties:
+      callee_id:
+        type: string
+    required:
+    - callee_id
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.StartCallResponse:
+    properties:
+      room_name:
+        type: string
+      token:
+        type: string
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.UpdateProfileRequest:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_dangkhoii_zalo-clone_internal_domain.User:
+    properties:
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: API Support
+  description: This is a WhatsApp/FaceTime clone API server.
+  title: Zalo Clone API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username, email, and password
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - Auth
+  /calls/join/{roomName}:
+    post:
+      consumes:
+      - application/json
+      description: Join an existing video call
+      parameters:
+      - description: Room Name
+        in: path
+        name: roomName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.JoinCallResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Join a call
+      tags:
+      - Calls
+  /calls/start:
+    post:
+      consumes:
+      - application/json
+      description: Start a new video call
+      parameters:
+      - description: Start Call Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.StartCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.StartCallResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Start a call
+      tags:
+      - Calls
+  /friends:
+    get:
+      consumes:
+      - application/json
+      description: Get list of accepted friends
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get friends
+      tags:
+      - Friendship
+  /friends/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a friend or pending request
+      parameters:
+      - description: Friendship ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove friend
+      tags:
+      - Friendship
+  /friends/accept/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Accept a pending friend request
+      parameters:
+      - description: Friendship ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Accept friend request
+      tags:
+      - Friendship
+  /friends/request:
+    post:
+      consumes:
+      - application/json
+      description: Send a friend request to another user
+      parameters:
+      - description: Friend Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.FriendRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.Friendship'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Send friend request
+      tags:
+      - Friendship
+  /friends/requests:
+    get:
+      consumes:
+      - application/json
+      description: Get list of pending incoming friend requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get pending friend requests
+      tags:
+      - Friendship
+  /users/profile:
+    put:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: Update Profile Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_dangkhoii_zalo-clone_internal_domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - Users
+  /users/search:
+    get:
+      consumes:
+      - application/json
+      description: Search users by username or email
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Search users
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

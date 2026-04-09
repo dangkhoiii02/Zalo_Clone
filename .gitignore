@@ -1,0 +1,22 @@
+# Exclude local environment files
+.env
+.DS_Store
+
+# Go 
+backend/bin/
+backend/tmp/
+backend/*.exe
+backend/*.o
+backend/*.a
+
+# Frontend output and dependencies
+ui/.dart_tool/
+ui/.pub-cache/
+ui/.pub/
+ui/build/
+ui/.flutter-plugins
+ui/.flutter-plugins-dependencies
+
+# IDEs
+.idea/
+.vscode/
