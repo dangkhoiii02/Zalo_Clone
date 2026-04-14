@@ -55,9 +55,11 @@ services:
       - "7880:7880"
       - "7881:7881"
       - "7882:7882/udp"
-    command: >
-      --dev
-      --bind 0.0.0.0
+      - "3478:3478/udp"
+      - "30000-30010:30000-30010/udp"
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    command: --config /etc/livekit.yaml --dev
     environment:
       LIVEKIT_KEYS: "devkey: secret-devkey-change-in-production"
 

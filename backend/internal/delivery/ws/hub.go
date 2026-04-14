@@ -167,7 +167,7 @@ func (h *Hub) handleChatMessage(client *Client, data json.RawMessage) {
 	// Broadcast to all participants
 	outgoing, _ := json.Marshal(WSMessage{
 		Type: "message",
-		Data: mustMarshal(map[string]interface{}{
+		Data: MustMarshal(map[string]interface{}{
 			"id":              message.ID,
 			"conversation_id": message.ConversationID,
 			"sender_id":       message.SenderID,
@@ -181,9 +181,6 @@ func (h *Hub) handleChatMessage(client *Client, data json.RawMessage) {
 
 	h.mu.RLock()
 	for _, participantID := range conv.Participants {
-		if participantID == client.UserID {
-			continue // Don't echo back to sender
-		}
 		if recipient, ok := h.clients[participantID]; ok {
 			recipient.Send(outgoing)
 		}
@@ -208,7 +205,7 @@ func (h *Hub) handleTyping(client *Client, data json.RawMessage) {
 
 	outgoing, _ := json.Marshal(WSMessage{
 		Type: "typing",
-		Data: mustMarshal(map[string]interface{}{
+		Data: MustMarshal(map[string]interface{}{
 			"conversation_id": typingMsg.ConversationID,
 			"user_id":         client.UserID,
 			"username":        client.Username,
@@ -244,7 +241,7 @@ func (h *Hub) handleRead(client *Client, data json.RawMessage) {
 
 	outgoing, _ := json.Marshal(WSMessage{
 		Type: "read_receipt",
-		Data: mustMarshal(map[string]interface{}{
+		Data: MustMarshal(map[string]interface{}{
 			"conversation_id": readMsg.ConversationID,
 			"message_id":      readMsg.MessageID,
 			"read_by":         client.UserID,
@@ -271,7 +268,7 @@ func (h *Hub) handleHeartbeat(client *Client) {
 func (h *Hub) broadcastPresence(userID, status string) {
 	outgoing, _ := json.Marshal(WSMessage{
 		Type: "presence",
-		Data: mustMarshal(map[string]interface{}{
+		Data: MustMarshal(map[string]interface{}{
 			"user_id": userID,
 			"status":  status,
 		}),
@@ -300,7 +297,7 @@ func (h *Hub) SendToUser(userID string, msg WSMessage) {
 	h.mu.RUnlock()
 }
 
-func mustMarshal(v interface{}) json.RawMessage {
+func MustMarshal(v interface{}) json.RawMessage {
 	data, _ := json.Marshal(v)
 	return data
 }

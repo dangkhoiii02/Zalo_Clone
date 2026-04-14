@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dangkhoii/zalo-clone/internal/domain"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -31,14 +32,16 @@ func (r *messageRepository) Create(ctx context.Context, message *domain.Message)
 		message.Type = domain.MessageTypeText
 	}
 
-	result, err := r.collection.InsertOne(ctx, message)
+	// Generate string ID to avoid ObjectID decode issues
+	if message.ID == "" {
+		message.ID = uuid.New().String()
+	}
+
+	_, err := r.collection.InsertOne(ctx, message)
 	if err != nil {
 		return fmt.Errorf("failed to insert message: %w", err)
 	}
 
-	if oid, ok := result.InsertedID.(bson.ObjectID); ok {
-		message.ID = oid.Hex()
-	}
 	return nil
 }
 
@@ -63,18 +66,13 @@ func (r *messageRepository) GetByConversation(ctx context.Context, conversationI
 }
 
 func (r *messageRepository) MarkAsRead(ctx context.Context, messageID, userID string) error {
-	oid, err := bson.ObjectIDFromHex(messageID)
-	if err != nil {
-		return fmt.Errorf("invalid message ID: %w", err)
-	}
-
-	filter := bson.M{"_id": oid}
+	filter := bson.M{"_id": messageID}
 	update := bson.M{
 		"$addToSet": bson.M{"read_by": userID},
 		"$set":      bson.M{"updated_at": time.Now()},
 	}
 
-	_, err = r.collection.UpdateOne(ctx, filter, update)
+	_, err := r.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to mark message as read: %w", err)
 	}

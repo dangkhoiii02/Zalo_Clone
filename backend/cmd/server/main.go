@@ -76,7 +76,7 @@ func main() {
 	authUsecase := usecase.NewAuthUsecase(userRepo, cfg.JWT)
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	friendshipUsecase := usecase.NewFriendshipUsecase(friendshipRepo, userRepo, presenceRepo)
-	_ = usecase.NewMessageUsecase(messageRepo, conversationRepo) // Used by WS Hub
+	messageUsecase := usecase.NewMessageUsecase(messageRepo, conversationRepo)
 	callUsecase := usecase.NewCallUsecase(cfg.LiveKit)
 
 	// Initialize WebSocket Hub
@@ -87,20 +87,22 @@ func main() {
 	authHandler := httpDelivery.NewAuthHandler(authUsecase)
 	userHandler := httpDelivery.NewUserHandler(userUsecase)
 	friendshipHandler := httpDelivery.NewFriendshipHandler(friendshipUsecase)
-	callHandler := httpDelivery.NewCallHandler(callUsecase)
+	callHandler := httpDelivery.NewCallHandler(callUsecase, hub)
+	conversationHandler := httpDelivery.NewConversationHandler(messageUsecase)
 	wsHandler := ws.NewHandler(hub, cfg.JWT.Secret)
 
 	// Setup router
 	router := httpDelivery.NewRouter(httpDelivery.RouterDeps{
-		AuthHandler:       authHandler,
-		UserHandler:       userHandler,
-		FriendshipHandler: friendshipHandler,
-		CallHandler:       callHandler,
-		WSHandler:         wsHandler,
-		JWTSecret:         cfg.JWT.Secret,
-		PgPool:            pgPool,
-		MongoDB:           mongoDB,
-		RedisClient:       redisClient,
+		AuthHandler:          authHandler,
+		UserHandler:          userHandler,
+		FriendshipHandler:    friendshipHandler,
+		CallHandler:          callHandler,
+		ConversationHandler:  conversationHandler,
+		WSHandler:            wsHandler,
+		JWTSecret:            cfg.JWT.Secret,
+		PgPool:               pgPool,
+		MongoDB:              mongoDB,
+		RedisClient:          redisClient,
 	})
 
 	// Start server

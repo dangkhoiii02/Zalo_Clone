@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	"github.com/dangkhoii/zalo-clone/internal/delivery/ws"
 	"github.com/dangkhoii/zalo-clone/internal/middleware"
 	"github.com/dangkhoii/zalo-clone/internal/domain"
 	"github.com/dangkhoii/zalo-clone/internal/usecase"
@@ -11,10 +12,11 @@ import (
 
 type CallHandler struct {
 	callUsecase *usecase.CallUsecase
+	hub         *ws.Hub
 }
 
-func NewCallHandler(callUsecase *usecase.CallUsecase) *CallHandler {
-	return &CallHandler{callUsecase: callUsecase}
+func NewCallHandler(callUsecase *usecase.CallUsecase, hub *ws.Hub) *CallHandler {
+	return &CallHandler{callUsecase: callUsecase, hub: hub}
 }
 
 // @Summary Start a call
@@ -44,6 +46,16 @@ func (h *CallHandler) StartCall(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Notify callee via WebSocket about the incoming call
+	h.hub.SendToUser(req.CalleeID, ws.WSMessage{
+		Type: "incoming_call",
+		Data: ws.MustMarshal(map[string]interface{}{
+			"room_name":   resp.RoomName,
+			"caller_id":   userID.String(),
+			"caller_name": username,
+		}),
+	})
 
 	c.JSON(http.StatusOK, resp)
 }

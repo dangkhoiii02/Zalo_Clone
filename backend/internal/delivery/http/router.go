@@ -17,15 +17,16 @@ import (
 )
 
 type RouterDeps struct {
-	AuthHandler       *AuthHandler
-	UserHandler       *UserHandler
-	FriendshipHandler *FriendshipHandler
-	CallHandler       *CallHandler
-	WSHandler         *ws.Handler
-	JWTSecret         string
-	PgPool            *pgxpool.Pool
-	MongoDB           *mongo.Database
-	RedisClient       *redis.Client
+	AuthHandler          *AuthHandler
+	UserHandler          *UserHandler
+	FriendshipHandler    *FriendshipHandler
+	CallHandler          *CallHandler
+	ConversationHandler  *ConversationHandler
+	WSHandler            *ws.Handler
+	JWTSecret            string
+	PgPool               *pgxpool.Pool
+	MongoDB              *mongo.Database
+	RedisClient          *redis.Client
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {
@@ -87,6 +88,11 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		protected.DELETE("/friends/:id", deps.FriendshipHandler.RemoveFriend)
 		protected.GET("/friends", deps.FriendshipHandler.GetFriends)
 		protected.GET("/friends/requests", deps.FriendshipHandler.GetPendingRequests)
+
+		// Conversations & Messages
+		protected.POST("/conversations", deps.ConversationHandler.CreateConversation)
+		protected.GET("/conversations", deps.ConversationHandler.GetConversations)
+		protected.GET("/conversations/:id/messages", deps.ConversationHandler.GetMessages)
 
 		// Calls (LiveKit)
 		protected.POST("/calls/start", deps.CallHandler.StartCall)
